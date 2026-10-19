@@ -1,0 +1,1270 @@
+/* ─── Reset ─────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  color-scheme: dark;
+
+  /* ── Base surfaces ── */
+  --bg-app:      #0D0D0F;
+  --bg-panel:    #161619;
+  --bg-card:     #1E1E24;
+  --bg-elevated: #252530;
+  --bg-hover:    #2C2C3A;
+  --bg-active:   #32323E;
+
+  /* ── Legacy accent (knob fill, focus border, tab active) ── */
+  --accent:      #5B8DB8;
+  --accent-dim:  #3D6080;
+  --accent-glow: rgba(91,141,184,0.12);
+
+  /* ── Module identity colors ── */
+  --mod-sub:     #2A7FFF;   /* Sub Oscillator — electric blue */
+  --mod-click:   #FF7A2A;   /* Click/Transient — amber */
+  --mod-body:    #9D4EDD;   /* Body Oscillator — purple */
+  --mod-sample:  #27AE60;   /* Sample Layers — green */
+  --mod-focus:   #E8C547;   /* Focus Window — gold */
+
+  /* ── Text ── */
+  --text-primary:   #C8C8D0;
+  --text-secondary: #787888;
+  --text-muted:     #48485A;
+  --text-value:     #E0E0EC;
+  --text-white:     #F0F0F8;
+
+  /* ── Borders ── */
+  --border:         #2A2A36;
+  --border-panel:   #363648;
+  --border-focus:   #5B8DB8;
+
+  /* ── Status ── */
+  --green:  #27AE60;
+  --red:    #C05050;
+  --yellow: #B89B4A;
+}
+
+html, body, #root {
+  width: 100%; height: 100%; overflow: hidden;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: Inter, system-ui, sans-serif;
+  user-select: none;
+}
+
+button, input, select { font: inherit; color: inherit; }
+select, input[type='number'] { appearance: none; -webkit-appearance: none; }
+button, select, input { border: none; outline: none; }
+button { cursor: pointer; background: none; }
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { margin: 0; }
+
+/* ─── App shell ──────────────────────────────────────────────────────────── */
+.appFrame {
+  width: 100vw; height: 100vh;
+  min-width: 1200px; min-height: 720px;
+  overflow: hidden;
+  background: var(--bg-app);
+  background-image: url('./assets/bg-kicksynth.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.appFrame::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: rgba(0,0,0,0.86);
+}
+.app {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%;
+  min-width: 1200px; min-height: 720px;
+  display: grid;
+  grid-template-rows: 44px 36px minmax(0,1fr) 52px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.noDrag { -webkit-app-region: no-drag; }
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.headerBar {
+  display: grid;
+  grid-template-columns: 200px 1fr 260px;
+  align-items: center;
+  padding: 0 12px;
+  background: rgba(8,8,10,0.95);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+  overflow: hidden;
+}
+.headerLeft, .headerCenter, .headerRight {
+  display: flex; align-items: center; min-width: 0;
+}
+.headerCenter { justify-content: center; gap: 6px; }
+.headerRight  { justify-content: flex-end; gap: 6px; }
+
+.brandBadge {
+  width: 14px; height: 14px; border-radius: 50%;
+  margin-right: 10px; background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(91,141,184,0.18), 0 0 8px rgba(91,141,184,0.25);
+}
+.brandTitle    { font-size: 18px; font-weight: 400; color: #aab; line-height: 1; letter-spacing: 0.1em; }
+.brandSubtitle {
+  margin-top: 3px; font-size: 8px; font-weight: 700;
+  letter-spacing: 0.22em; color: var(--text-muted); text-transform: uppercase;
+}
+
+/* ─── Toolbar buttons ─────────────────────────────────────────────────────── */
+.presetSelect, .toolbarButton, .windowButton {
+  height: 28px; border-radius: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: background 140ms, border-color 140ms, color 140ms;
+}
+.presetSelect { min-width: 140px; padding: 0 10px; font-size: 10px; }
+.toolbarButton, .windowButton {
+  min-width: 30px; padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.toolbarButton.wide { min-width: 58px; }
+.windowButton.danger:hover { border-color: var(--red); background: rgba(192,80,80,0.14); color: #fff; }
+
+button:hover, select:hover { background: var(--bg-hover); border-color: var(--border-panel); }
+button:active { transform: translateY(1px); }
+button:focus-visible, select:focus-visible, input:focus-visible {
+  border-color: var(--border-focus); box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.buttonIcon { width: 14px; height: 14px; flex: 0 0 auto; }
+.iconButton, .toolbarButtonWithIcon, .transportButton { gap: 6px; }
+.toolbarButtonWithIcon, .transportButton, .slotLoadButton {
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ─── Level meter (header) ───────────────────────────────────────────────── */
+.levelMeter {
+  width: 74px; height: 30px; padding: 4px 6px;
+  display: flex; align-items: flex-end; gap: 6px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card);
+}
+.levelMeterTrack {
+  position: relative; width: 10px; height: 100%;
+  border-radius: 999px; overflow: hidden;
+  background: #111; border: 1px solid var(--border-panel);
+}
+.levelMeterBar {
+  position: absolute; left: 0; right: 0; bottom: 0; border-radius: 999px;
+  background: linear-gradient(180deg, var(--red) 0%, var(--yellow) 42%, var(--green) 100%);
+}
+.levelMeterPeak { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); }
+.levelMeter span { font-size: 9px; font-weight: 700; color: var(--text-value); line-height: 1; }
+
+/* ─── Tab bar ─────────────────────────────────────────────────────────────── */
+.tabBar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 14px; background: rgba(6,6,8,0.92); border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.tab {
+  min-width: 112px; height: 28px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 10px; font-weight: 800; letter-spacing: 0.16em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 12px;
+  transition: background 140ms, border-color 140ms, color 140ms;
+}
+.tab:hover { background: var(--bg-hover); border-color: var(--border-panel); color: var(--text-primary); }
+.tab.active { background: var(--bg-elevated); border-color: var(--accent); color: var(--text-primary); }
+.tab.preview { color: #8a8f96; }
+.tabPreviewBadge { font-size: 8px; letter-spacing: 0.08em; color: var(--text-muted); }
+
+/* ─── Main content ───────────────────────────────────────────────────────── */
+.mainContent {
+  min-height: 0; overflow: hidden;
+  display: grid; grid-template-rows: minmax(0,1fr);
+}
+.mainContent > * { min-height: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEW MODULAR SYNTH LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.synthView {
+  display: grid;
+  grid-template-columns: minmax(460px, 46%) minmax(0, 1fr) 320px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.modCard {
+  --mod-color: #5B8DB8;  /* overridden per card */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  background: linear-gradient(170deg, rgba(30,30,36,0.98) 0%, rgba(18,18,22,0.99) 100%);
+  border-right: 1px solid var(--border);
+  border-top: 2px solid var(--mod-color);
+  position: relative;
+}
+.modCard:last-child { border-right: none; }
+
+/* colored inner glow on top border */
+.modCard::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 40px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-color) 6%, transparent) 0%, transparent 100%);
+  pointer-events: none; z-index: 0;
+}
+.modCard > * { position: relative; z-index: 1; }
+
+.modCard.sub   { --mod-color: var(--mod-sub); }
+.modCard.click { --mod-color: var(--mod-click); }
+.modCard.body  { --mod-color: var(--mod-body); }
+
+.modHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 26px; padding: 0 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.modTitle {
+  font-size: 8px; font-weight: 900; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--mod-color);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--mod-color) 35%, transparent);
+  opacity: 0.95;
+}
+.modActions { display: flex; align-items: center; gap: 4px; }
+
+.modBody {
+  flex: 1 1 0; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 8px 12px 6px;
+  gap: 5px;
+  overflow: hidden;
+}
+
+/* ─── Work Area (bottom half: sample layers + focus window) ──────────────── */
+.workArea {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 420px;
+  overflow: hidden;
+}
+
+/* ─── Layers Panel ───────────────────────────────────────────────────────── */
+.layersPanel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 2px solid var(--border);
+  background: linear-gradient(180deg, rgba(18,18,24,0.98) 0%, rgba(12,12,16,0.99) 100%);
+}
+
+.layersPanelHeader {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 12px 4px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6,6,10,0.8);
+}
+.layersPanelTitle {
+  font-size: 7px; font-weight: 900; letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mod-sample);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--mod-sample) 30%, transparent);
+}
+
+.sampleSlots {
+  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+}
+
+.sampleSlot {
+  --slot-color: var(--mod-sample);
+  display: flex; flex-direction: column;
+  padding: 8px 10px 6px;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  border-top: 1px solid color-mix(in srgb, var(--slot-color) 20%, transparent);
+  background: linear-gradient(170deg, rgba(22,22,28,0.98) 0%, rgba(14,14,18,0.99) 100%);
+  transition: border-top-color 140ms;
+}
+.sampleSlot:last-child { border-right: none; }
+.sampleSlot.is-active { border-top-color: var(--slot-color); }
+
+.slotHeader {
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 5px; flex-shrink: 0;
+}
+.slotTitle {
+  font-size: 7.5px; font-weight: 900; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--slot-color); opacity: 0.9;
+}
+.slotControls {
+  display: flex; align-items: center; gap: 3px; margin-left: auto;
+}
+
+.slotFileRow {
+  display: grid; grid-template-columns: 22px minmax(0,1fr);
+  gap: 4px; align-items: center; margin-bottom: 5px; flex-shrink: 0;
+}
+
+.slotWaveform {
+  flex-shrink: 0; margin-bottom: 5px; border-radius: 4px; overflow: hidden;
+  border: 1px solid var(--border); background: #0e0e12;
+  height: 44px;
+}
+.slotWaveform canvas { width: 100% !important; height: 100% !important; }
+
+.slotKnobRow {
+  display: flex; gap: 4px; align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.slotMeterRow {
+  flex: 1 1 0; min-height: 0;
+  display: flex; align-items: flex-end; justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* ─── Focus Window (right panel, multi-tab) ──────────────────────────────── */
+.focusWindow {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(170deg, rgba(18,18,24,0.98) 0%, rgba(12,12,16,0.99) 100%);
+  border-left: 1px solid var(--border);
+}
+
+/* The existing masterDisplay already handles tabs & canvas; reuse it */
+.masterDisplay {
+  flex: 1 1 0; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.masterDisplayModes {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 3px;
+  padding: 5px 8px;
+  background: rgba(6,6,10,0.92);
+  border-bottom: 1px solid var(--border);
+}
+
+.masterModeBtn {
+  height: 26px; min-width: 50px; padding: 0 10px;
+  border-radius: 5px 5px 0 0;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.masterModeBtn:hover {
+  background: var(--bg-hover); border-color: var(--border-panel);
+  border-bottom-color: rgba(232,197,71,0.3); color: var(--text-primary);
+}
+.masterModeBtn.active {
+  background: var(--bg-elevated); border-color: var(--border-panel);
+  border-bottom-color: var(--mod-focus); color: var(--text-white);
+}
+
+.masterDisplaySpacer { flex: 1; }
+.masterDisplayHint {
+  font-size: 8px; font-weight: 600; letter-spacing: 0.06em;
+  color: rgba(232,197,71,0.4); font-style: italic;
+}
+
+.masterDisplayCanvas {
+  flex: 1 1 0; min-height: 0; position: relative; overflow: hidden;
+}
+.masterDisplayCanvasEl { display: block; width: 100%; height: 100%; }
+
+/* EQ inside focus window */
+.masterDisplayCanvas .eqCurveShell { height: 100%; border-radius: 0; }
+.masterDisplayCanvas .eqCurveCanvas { border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
+.masterDisplayCanvas .eqScale { padding: 0 4px; font-size: 8px; color: var(--text-muted); }
+
+/* ─── Compact section card (inside module cards) ──────────────────────────── */
+.pSection {
+  flex: 0 0 auto; overflow: hidden;
+  padding: 9px 12px 8px;
+  border-bottom: 1px solid var(--border-panel);
+  background: linear-gradient(180deg, rgba(50,50,60,0.5) 0px, rgba(26,26,32,0.95) 18px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+.pSectionFlex { flex: 1 1 0; }
+
+.pSectionHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 4px; margin-bottom: 7px;
+}
+.pSectionTitle {
+  font-size: 8px; font-weight: 900; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--accent); opacity: 0.9;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+.pSectionActions { display: flex; align-items: center; gap: 3px; }
+
+.pDiceBtn {
+  width: 22px; height: 16px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 9px;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pDiceBtn:hover { color: var(--text-secondary); border-color: var(--border-panel); background: var(--bg-hover); }
+.pDiceBtn:active { transform: translateY(1px); }
+
+.pEnableBtn {
+  width: 22px; height: 16px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 8px;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pEnableBtn.active { border-color: var(--border-focus); color: var(--green); }
+
+/* ─── Button rows ─────────────────────────────────────────────────────────── */
+.pButtonRow {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 3px; margin-bottom: 3px;
+}
+.pButtonRowFour { grid-template-columns: repeat(4, 1fr); }
+
+.pTypeBtn {
+  height: 26px; border-radius: 5px;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  background: linear-gradient(180deg, #26262E 0%, #1A1A20 100%);
+  border: 1px solid var(--border); color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.4);
+  transition: background 120ms, border-color 120ms, color 120ms;
+  padding: 0 4px;
+}
+.pTypeBtn:hover { background: linear-gradient(180deg, #303040 0%, #262630 100%); border-color: var(--border-panel); color: var(--text-primary); }
+.pTypeBtn:active { transform: translateY(1px); }
+.pTypeBtn.active {
+  background: linear-gradient(180deg, #374d65 0%, #2b3d52 100%);
+  color: var(--text-white); border-color: var(--border-focus);
+  box-shadow: inset 0 1px 0 rgba(91,141,184,0.2), 0 1px 3px rgba(0,0,0,0.45);
+}
+
+/* module-colored active type buttons */
+.modCard.sub   .pTypeBtn.active { background: linear-gradient(180deg, #1a3a6a 0%, #122a54 100%); border-color: var(--mod-sub); box-shadow: inset 0 1px 0 rgba(42,127,255,0.2); }
+.modCard.click .pTypeBtn.active { background: linear-gradient(180deg, #5a2a0a 0%, #3d1c06 100%); border-color: var(--mod-click); box-shadow: inset 0 1px 0 rgba(255,122,42,0.2); }
+.modCard.body  .pTypeBtn.active { background: linear-gradient(180deg, #3a1a5a 0%, #281240 100%); border-color: var(--mod-body); box-shadow: inset 0 1px 0 rgba(157,78,221,0.2); }
+
+/* section-colored active type buttons (new 3-col layout) */
+.synthSectionSub   .pTypeBtn.active { background: linear-gradient(180deg, #1a3a6a 0%, #122a54 100%); border-color: var(--mod-sub); color: #fff; box-shadow: inset 0 1px 0 rgba(42,127,255,0.25); }
+.synthSectionClick .pTypeBtn.active { background: linear-gradient(180deg, #5a2a0a 0%, #3d1c06 100%); border-color: var(--mod-click); color: #fff; box-shadow: inset 0 1px 0 rgba(255,122,42,0.25); }
+.synthSectionBody  .pTypeBtn.active { background: linear-gradient(180deg, #3a1a5a 0%, #281240 100%); border-color: var(--mod-body); color: #fff; box-shadow: inset 0 1px 0 rgba(157,78,221,0.25); }
+
+/* section-colored knob fills (new layout) */
+.synthSectionSub   .knobFill { stroke: var(--mod-sub) !important; }
+.synthSectionClick .knobFill { stroke: var(--mod-click) !important; }
+.synthSectionBody  .knobFill { stroke: var(--mod-body) !important; }
+
+/* Focus window knob fills */
+.synthRightCol .focusGainSection .knobFill { stroke: var(--mod-focus) !important; }
+.synthRightCol .focusPreviewFilter .knobFill { stroke: var(--mod-focus) !important; }
+
+/* Sample layers knob fills */
+.sampleLayersBlock .knobFill { stroke: var(--mod-sample) !important; }
+
+/* ─── Filter type grid ────────────────────────────────────────────────────── */
+.pFilterGrid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 2px; margin-bottom: 4px;
+}
+.pFilterBtn {
+  height: 26px; border-radius: 5px;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  background: linear-gradient(180deg, #26262E 0%, #1A1A20 100%);
+  border: 1px solid var(--border); color: var(--text-secondary); padding: 0 4px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.4);
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pFilterBtn:hover { background: linear-gradient(180deg, #303040 0%, #262630 100%); border-color: var(--border-panel); color: var(--text-primary); }
+.pFilterBtn:active { transform: translateY(1px); }
+.pFilterBtn.active {
+  background: linear-gradient(180deg, #374d65 0%, #2b3d52 100%);
+  color: var(--text-white); border-color: var(--border-focus);
+  box-shadow: inset 0 1px 0 rgba(91,141,184,0.2), 0 1px 3px rgba(0,0,0,0.45);
+}
+
+/* ─── Knob rows ───────────────────────────────────────────────────────────── */
+.pKnobRow {
+  display: flex; gap: 6px; align-items: flex-start;
+  overflow: visible;
+  background: linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.08) 100%);
+  border-radius: 6px; padding: 6px 5px 5px; margin: 0 -3px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.18);
+}
+.pEqKnobRow { gap: 8px; margin-bottom: 4px; }
+
+/* knob color tinting per module */
+.modCard.sub   .knob .knobFill, .modCard.sub   .knob path[stroke='#5B8DB8'] { stroke: var(--mod-sub) !important; }
+.modCard.click .knob .knobFill, .modCard.click .knob path[stroke='#5B8DB8'] { stroke: var(--mod-click) !important; }
+.modCard.body  .knob .knobFill, .modCard.body  .knob path[stroke='#5B8DB8'] { stroke: var(--mod-body) !important; }
+
+/* ─── Knob sizing ─────────────────────────────────────────────────────────── */
+.knob {
+  --ks: 48px;
+  width: var(--ks); min-width: var(--ks);
+  display: flex; flex-direction: column; align-items: center;
+  cursor: ns-resize;
+  gap: 1px;
+}
+.knobVisual, .knobSvg { width: var(--ks); height: var(--ks); }
+.knobRing { fill: #141418; stroke: #333340; stroke-width: 1.5; }
+.knobTrack, .knobFill { fill: none; stroke-linecap: round; stroke-width: 5.5; }
+.knobTrack { stroke: #1a1a22; }
+.knobFill  { stroke: var(--accent); transition: stroke 100ms; }
+.knobCore  { fill: #111116; stroke: #2a2a35; stroke-width: 1.5; }
+.knobPointer { stroke: rgba(255,255,255,0.92); stroke-width: 2.4; stroke-linecap: round; }
+.knobDot   { fill: rgba(255,255,255,0.92); }
+
+.knobCaption { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.knobLabel {
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-secondary);
+  white-space: nowrap; overflow: visible; text-overflow: clip;
+  max-width: none; line-height: 1.2; margin-top: 3px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.7);
+}
+.knobReadout {
+  font-size: 10px; font-weight: 700; color: #E8E8EC;
+  white-space: nowrap; line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ─── Pitch display ───────────────────────────────────────────────────────── */
+.pPitchLine {
+  margin-top: 3px; padding: 3px 10px; border-radius: 5px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #181820 0%, #12121A 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.3);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.07em; color: var(--text-value);
+  white-space: nowrap; overflow: hidden;
+  display: flex; align-items: center; gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.pPitchLine::before {
+  content: 'PITCH'; display: block;
+  font-size: 8px; font-weight: 900; letter-spacing: 0.22em;
+  color: var(--mod-body); opacity: 0.75; flex-shrink: 0;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+
+/* ─── Tune row ────────────────────────────────────────────────────────────── */
+.pTuneRow {
+  margin-top: 2px; display: grid;
+  grid-template-columns: auto 52px auto 52px;
+  gap: 4px; align-items: center;
+}
+.pTuneRow label {
+  font-size: 7px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.pTuneRow input {
+  height: 18px; border-radius: 4px; padding: 0 4px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-value); font-size: 9px; text-align: center;
+  transition: border-color 120ms;
+}
+.pTuneRow input:focus { border-color: var(--border-focus); }
+
+/* ─── Mod section rows ────────────────────────────────────────────────────── */
+.pModRow {
+  display: grid; grid-template-columns: var(--ks, 30px) var(--ks, 30px) 1fr;
+  gap: 4px; align-items: flex-start; margin-bottom: 3px;
+}
+.pCompactField {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.pCompactField span {
+  font-size: 7px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.pCompactField .selectShell, .pCompactField select { width: 100%; }
+.pCompactField select {
+  height: 20px; border-radius: 4px; padding: 0 4px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-value); font-size: 9px;
+}
+
+/* ─── Character section footer ────────────────────────────────────────────── */
+.pCharFooter {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px; align-items: flex-start; margin-top: 3px;
+}
+.pLimiterField { display: flex; flex-direction: column; gap: 3px; }
+.pLimiterField span {
+  font-size: 7px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+
+/* ─── Toggle ──────────────────────────────────────────────────────────────── */
+.toggle {
+  height: 24px; padding: 0 8px;
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary);
+  transition: border-color 140ms, color 140ms, background 140ms;
+}
+.toggle span:first-child { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.toggle-track {
+  width: 24px; height: 12px; padding: 2px; border-radius: 999px; background: var(--bg-active);
+  transition: background 140ms;
+}
+.toggle-thumb {
+  width: 8px; height: 8px; display: block; border-radius: 50%;
+  background: #fff; transition: transform 140ms;
+}
+.toggle.is-active .toggle-track { background: var(--accent-dim); }
+.toggle.is-active .toggle-thumb { transform: translateX(12px); }
+.toggle.is-active { border-color: var(--border-focus); color: var(--text-white); }
+
+/* ─── Volume slider (in modules) ─────────────────────────────────────────── */
+.pVolumeSlider {
+  -webkit-appearance: none; width: 100%; height: 5px;
+  border-radius: 3px; background: var(--bg-elevated); cursor: pointer; outline: none;
+}
+.pVolumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+  border: 2px solid var(--bg-panel);
+}
+.pVolumeSlider::-webkit-slider-runnable-track {
+  height: 5px;
+  background: linear-gradient(to right, var(--accent) var(--pct,80%), var(--bg-elevated) var(--pct,80%));
+  border-radius: 3px;
+}
+
+/* Quick strip in sub osc module */
+.pQuickStrip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px; margin-bottom: 4px;
+  background: linear-gradient(180deg, #18181e 0%, #14141a 100%);
+  border-radius: 5px; border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.5);
+}
+.pTrigBtn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--bg-panel); border: 1px solid var(--border);
+  color: var(--text-primary); font-size: 8px; font-weight: 700;
+  letter-spacing: 0.1em; cursor: pointer; white-space: nowrap;
+  transition: background 0.1s, color 0.1s, border-color 0.1s; flex-shrink: 0;
+}
+.pTrigBtn .buttonIcon { width: 11px; height: 11px; }
+.pTrigBtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pTrigBtn.is-triggering { background: var(--accent); color: #fff; border-color: var(--accent); opacity: 0.7; }
+.pTrigBtn.is-success { background: rgba(39,174,96,0.25); color: #fff; border-color: var(--green); }
+.pQuickVol { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.pQuickVolLabel { font-size: 7px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); flex-shrink: 0; }
+.pQuickVol .pVolumeSlider { flex: 1; }
+.pQuickVolReadout { font-size: 8px; font-weight: 700; color: var(--text-value); white-space: nowrap; flex-shrink: 0; min-width: 42px; text-align: right; }
+
+/* ─── EQ section ──────────────────────────────────────────────────────────── */
+.pEqSection { flex: 0 0 auto; display: flex; flex-direction: column; overflow: hidden; }
+.pEqFreqLabels { display: flex; gap: 4px; margin-bottom: 2px; font-size: 7px; font-weight: 700; color: var(--text-muted); }
+.pEqFreqLabels span { flex: 1; text-align: center; }
+.pEqNudge { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.pEqNudgeHint { font-size: 8px; color: var(--text-muted); letter-spacing: 0.04em; font-style: italic; }
+.pEqViewBtn {
+  height: 18px; padding: 0 10px; border-radius: 4px;
+  background: rgba(232,197,71,0.08); border: 1px solid rgba(232,197,71,0.22);
+  color: var(--mod-focus); font-size: 8px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  transition: background 120ms, border-color 120ms;
+}
+.pEqViewBtn:hover { background: rgba(232,197,71,0.16); border-color: var(--mod-focus); }
+
+/* ─── EQ Curve component ──────────────────────────────────────────────────── */
+.eqCurveShell { height: 100%; display: grid; grid-template-columns: 28px 1fr; grid-template-rows: 1fr 12px; gap: 4px; }
+.eqScale { display: flex; font-size: 8px; color: var(--text-muted); }
+.eqScaleTop { flex-direction: column; justify-content: space-between; align-items: flex-end; padding-right: 3px; grid-row: 1; grid-column: 1; }
+.eqScaleBottom { justify-content: space-between; align-items: center; grid-row: 2; grid-column: 2; }
+.eqCurveCanvas { width: 100%; height: 100%; display: block; border-radius: 8px; border: 1px solid var(--border); grid-row: 1; grid-column: 2; }
+
+/* ─── Layer strip items ───────────────────────────────────────────────────── */
+.pLayerHeader {
+  display: grid; grid-template-columns: 22px minmax(0,1fr);
+  gap: 5px; align-items: center; margin-bottom: 4px;
+}
+.pLayerLoad {
+  width: 22px; height: 22px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pLayerLoad:hover { border-color: var(--border-panel); color: var(--text-primary); background: var(--bg-hover); }
+.pLayerFile {
+  height: 22px; border-radius: 5px; padding: 0 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  font-size: 9px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pLayerFile:hover { border-color: var(--border-panel); color: var(--text-primary); background: var(--bg-hover); }
+.pLayerFile.loaded { color: var(--text-secondary); border-color: rgba(39,174,96,0.25); }
+.pLayerPower {
+  width: 22px; height: 22px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  font-size: 11px; color: var(--text-muted);
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.pLayerPower:hover { border-color: var(--border-panel); color: var(--text-secondary); }
+.pLayerPower.active { color: var(--green); border-color: rgba(39,174,96,0.4); }
+.pLayerDot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+.pLayerDotEnabled { background: var(--green); box-shadow: 0 0 4px rgba(39,174,96,0.4); }
+
+/* ─── Transport bar ───────────────────────────────────────────────────────── */
+.transportBar {
+  height: 54px; padding: 8px 12px; overflow: hidden;
+  display: flex; gap: 8px; align-items: center;
+  background: rgba(4,4,6,0.96);
+  border-top: 2px solid var(--border-panel);
+}
+
+.transportButton, .engineStatus, .transportField, .transportSelect { height: 32px; border-radius: 8px; }
+.transportButton, .engineStatus {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); background: var(--bg-card);
+}
+.transportButton {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-primary); padding: 0 14px;
+  transition: background 140ms, border-color 140ms, color 140ms, box-shadow 140ms, transform 100ms;
+}
+.transportButton:hover { background: var(--bg-hover); border-color: var(--border-panel); }
+.transportButton:active { transform: translateY(1px); }
+.transportButton.primary {
+  background: var(--accent-dim); border-color: var(--border-focus); color: var(--text-white);
+  font-weight: 800; letter-spacing: 0.14em;
+}
+.transportButton.primary:hover { background: var(--accent); }
+.transportButton.small { min-width: 48px; }
+.transportButton.active { background: var(--bg-elevated); border-color: var(--accent); color: var(--text-primary); }
+.transportButton.exportButton {
+  background: rgba(42,127,255,0.1); border-color: rgba(42,127,255,0.3); color: var(--mod-sub); letter-spacing: 0.14em;
+  font-weight: 800;
+}
+.transportButton.exportButton:hover { background: rgba(42,127,255,0.2); border-color: rgba(42,127,255,0.5); color: #fff; }
+.transportButton.is-triggering {
+  box-shadow: 0 0 0 1px rgba(91,141,184,0.28), 0 0 24px rgba(91,141,184,0.2);
+  transform: translateY(-1px);
+}
+.transportButton.is-success {
+  background: rgba(39,174,96,0.18); border-color: rgba(39,174,96,0.5);
+  box-shadow: 0 0 12px rgba(39,174,96,0.2); transition-duration: 60ms;
+}
+
+.transportField {
+  padding: 0 10px; display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); background: var(--bg-card);
+}
+.transportField span { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary); }
+.transportField input { width: 46px; background: transparent; border: none; text-align: center; color: var(--text-value); font-size: 12px; font-weight: 700; }
+.keyField strong { font-size: 14px; letter-spacing: 0.08em; color: var(--text-value); }
+
+.snapCluster { display: grid; grid-template-columns: 1fr 66px 46px; gap: 6px; align-items: center; height: 32px; }
+.transportSelect { padding: 0 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-value); }
+
+.engineStatus {
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
+  padding: 0 10px; display: inline-flex; align-items: center; gap: 6px;
+}
+.engineStatus::before {
+  content: ''; display: block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
+}
+.engineStatus.online { border-color: rgba(39,174,96,0.35); color: var(--text-primary); background: rgba(39,174,96,0.06); }
+.engineStatus.online::before { background: var(--green); box-shadow: 0 0 6px rgba(39,174,96,0.45); }
+
+.transportStatus {
+  height: 32px; border-radius: 8px; padding: 0 12px;
+  border: 1px solid var(--border); background: var(--bg-card);
+  display: inline-flex; align-items: center;
+  font-size: 10px; letter-spacing: 0.04em; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: color 200ms, border-color 200ms, background 200ms;
+  flex: 1; min-width: 0;
+}
+.status-good    { color: #9fcdad; border-color: rgba(39,174,96,0.3); background: rgba(39,174,96,0.05); }
+.status-warning { color: #d8b773; border-color: rgba(184,155,74,0.3); background: rgba(184,155,74,0.05); }
+
+/* ─── SelectField shell ───────────────────────────────────────────────────── */
+.selectShell { position: relative; display: inline-flex; align-items: center; }
+.selectShell select { width: 100%; padding-right: 20px; }
+.selectChevron {
+  pointer-events: none; position: absolute; right: 6px; top: 50%;
+  transform: translateY(-50%); width: 10px; height: 6px;
+  color: var(--text-secondary); flex-shrink: 0;
+}
+.presetSelect { width: 100%; }
+.compactField .selectShell { width: 100%; }
+.snapCluster .selectShell { width: 100%; height: 32px; }
+.snapCluster .selectShell select { width: 100%; height: 32px; }
+.headerCenter .selectShell { height: 28px; }
+.headerCenter .selectShell select { height: 28px; min-width: 140px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+
+/* ─── Roadmap / non-synth view ────────────────────────────────────────────── */
+.panelView { padding: 10px 14px 12px; flex: 1; min-height: 0; overflow-y: auto; }
+.roadmapView { display: grid; gap: 12px; align-content: start; }
+.roadmapHero, .roadmapCard {
+  border: 1px solid var(--border); border-radius: 14px;
+  background: linear-gradient(180deg, rgba(30,30,38,0.96) 0%, rgba(20,20,28,0.98) 100%);
+}
+.roadmapHero { padding: 18px; display: grid; gap: 10px; }
+.roadmapHero h2 { font-size: 20px; font-weight: 700; color: #f3f5f7; }
+.roadmapHero p, .roadmapCard p { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+.roadmapEyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+.roadmapCards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.roadmapCard { padding: 14px; display: grid; gap: 10px; }
+.sectionTitle { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-secondary); }
+
+/* ─── Focus window EQ knobs row ───────────────────────────────────────────── */
+.focusEqControls {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  gap: 4px;
+  background: rgba(6,6,10,0.7);
+}
+.focusEqKnobRow {
+  display: flex; gap: 5px; align-items: flex-start; justify-content: space-around;
+}
+.focusFilterControls {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: rgba(6,6,10,0.7);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.focusFilterGrid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+}
+.focusFilterKnobRow {
+  display: flex; gap: 4px; align-items: flex-start;
+}
+
+/* ─── Phase / Goniometer canvas ───────────────────────────────────────────── */
+.phaseWrapper {
+  flex: 1 1 0; min-height: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; padding: 10px;
+  background: #0e0e12;
+}
+.phaseGoniometer {
+  display: block; border-radius: 50%;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 20px rgba(0,0,0,0.6), inset 0 0 40px rgba(0,0,0,0.4);
+}
+.phaseCorrelationBar {
+  width: 80%; display: flex; flex-direction: column; gap: 4px;
+}
+.phaseCorrelationLabel {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 8px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.phaseCorrelationValue {
+  font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--text-value);
+}
+.phaseCorrelationTrack {
+  width: 100%; height: 8px; border-radius: 4px;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.phaseCorrelationFill {
+  position: absolute; top: 0; bottom: 0;
+  border-radius: 4px;
+  transition: left 80ms, width 80ms, background 80ms;
+}
+
+/* ─── Mini sub waveform preview (inside Sub Osc module) ───────────────────── */
+.miniWaveCanvas {
+  display: block; width: 100%; height: 50px;
+  border-radius: 6px; border: 1px solid var(--border-panel);
+  background: #0c0c14;
+  flex-shrink: 0;
+}
+
+/* ─── Pitch Envelope overlay in Focus Window ─────────────────────────────── */
+.masterDisplayPitchEnv {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: #0e0e14;
+}
+.masterDisplayPitchEnv canvas { width: 100% !important; height: 100% !important; }
+
+/* ─── CustomSelect ────────────────────────────────────────────────────────── */
+.customSelect {
+  position: relative; display: flex; flex-direction: column; gap: 2px;
+}
+.customSelectLabel {
+  font-size: 7px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.customSelectTrigger {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 26px; padding: 0 8px 0 10px; gap: 4px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-primary);
+  transition: border-color 120ms, background 120ms;
+  white-space: nowrap;
+}
+.customSelectTrigger:hover { border-color: var(--border-panel); background: var(--bg-hover); }
+.customSelectTrigger.open { border-color: var(--cs-color, var(--accent)); background: var(--bg-hover); }
+.customSelectValue { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.customSelectChevron {
+  width: 9px; height: 6px; flex-shrink: 0; color: var(--text-secondary);
+  transition: transform 150ms;
+}
+.customSelectTrigger.open .customSelectChevron { transform: rotate(180deg); }
+.customSelectDropdown {
+  position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 200;
+  background: var(--bg-elevated); border: 1px solid var(--border-panel);
+  border-radius: 6px; padding: 3px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; gap: 1px;
+  max-height: 180px; overflow-y: auto;
+}
+.customSelectOption {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 8px; border-radius: 4px; cursor: pointer;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-primary); text-align: left;
+  transition: background 80ms, color 80ms;
+  background: none; border: none;
+  white-space: nowrap;
+}
+.customSelectOption:hover { background: var(--bg-hover); color: var(--text-white); }
+.customSelectOption.selected { color: var(--cs-color, var(--accent)); }
+.customSelectOption.selected:hover { background: rgba(91,141,184,0.08); }
+.customSelectCheck { width: 10px; height: 8px; color: var(--cs-color, var(--accent)); flex-shrink: 0; }
+
+/* ─── GR Meter ────────────────────────────────────────────────────────────── */
+.grMeter {
+  display: flex; flex-direction: column; gap: 2px; align-items: center;
+}
+.grMeterLabel {
+  font-size: 6.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.grMeterTrack {
+  width: 60px; height: 7px; border-radius: 4px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.grMeterFill {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #27AE60, #F1C40F, #E74C3C);
+  transition: width 60ms linear;
+}
+.grMeterValue {
+  font-size: 8px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--text-secondary); letter-spacing: 0.06em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3-COLUMN SCREENSHOT LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Left column: 3 stacked synth sections ──────────────────────────────── */
+.synthLeftCol {
+  display: flex; flex-direction: column;
+  border-right: 2px solid var(--border-panel);
+  overflow: hidden;
+  background: linear-gradient(170deg, rgba(18,18,24,0.98) 0%, rgba(12,12,16,0.99) 100%);
+}
+.synthSection {
+  flex: 1 1 0; display: flex; flex-direction: column;
+  border-bottom: 1px solid var(--border-panel);
+  overflow: hidden; min-height: 0;
+  position: relative;
+}
+.synthSection::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40px;
+  pointer-events: none; z-index: 0;
+}
+.synthSectionSub::before { background: linear-gradient(180deg, rgba(42,127,255,0.06) 0%, transparent); }
+.synthSectionClick::before { background: linear-gradient(180deg, rgba(255,122,42,0.06) 0%, transparent); }
+.synthSectionBody::before { background: linear-gradient(180deg, rgba(157,78,221,0.06) 0%, transparent); }
+.synthSection > * { position: relative; z-index: 1; }
+.synthSection:last-child { border-bottom: none; }
+.synthSectionSub  { border-top: 3px solid var(--mod-sub); }
+.synthSectionClick{ border-top: 3px solid var(--mod-click); }
+.synthSectionBody { border-top: 3px solid var(--mod-body); }
+.synthSectionInner {
+  display: grid; grid-template-columns: 1fr 1fr;
+  flex: 1 1 0; overflow: hidden; min-height: 0;
+}
+.synthSectionMain, .synthSectionSide {
+  padding: 8px 12px; display: flex; flex-direction: column;
+  gap: 6px; overflow: hidden; min-height: 0;
+}
+.synthSectionMain { border-right: 1px solid rgba(255,255,255,0.08); }
+.sectionNumber {
+  font-size: 11px; font-weight: 900; letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.synthSectionSub  .sectionNumber { color: var(--mod-sub); }
+.synthSectionClick .sectionNumber{ color: var(--mod-click); }
+.synthSectionBody .sectionNumber { color: var(--mod-body); }
+
+/* Tune block */
+.tuneBlock { display: flex; flex-direction: column; gap: 6px; }
+.tuneBlockTitle {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.tuneSliders { display: flex; gap: 20px; align-items: flex-start; justify-content: center; }
+.tuneSliderCol { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.tuneSliderLabel {
+  font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.tuneVertSlider {
+  writing-mode: vertical-lr; direction: rtl;
+  -webkit-appearance: none; appearance: none;
+  width: 24px; height: 80px; background: transparent; cursor: pointer;
+}
+.tuneVertSlider::-webkit-slider-runnable-track {
+  width: 4px; height: 100%; border-radius: 2px;
+  background: linear-gradient(to bottom, #2A7FFF 0%, #1a1a22 50%, #1a1a22 100%);
+  border: 1px solid #333;
+}
+.tuneVertSlider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 10px; border-radius: 3px;
+  background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
+  border: 1px solid #666;
+  margin-left: -7px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.tuneKnobsRow { display: flex; gap: 12px; align-items: flex-start; justify-content: center; }
+.tuneKnobLabel {
+  font-size: 8px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-secondary); text-align: center;
+}
+.tuneReadout {
+  font-size: 11px; font-weight: 700; color: var(--text-value);
+  text-align: center; font-variant-numeric: tabular-nums;
+}
+
+/* Distortion block */
+.distortionBlock { display: flex; flex-direction: column; gap: 6px; }
+.distortionTitle {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.lfoDropdowns { display: flex; gap: 10px; margin-top: 4px; }
+.lfoDropdownCol { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.dropdownLabel {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+/* Waveform sub-label / Frequency / Amp */
+.waveformSubLabel { display: flex; flex-direction: column; gap: 4px; }
+.waveformSubLabel > span:first-child {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.frequencyBlock { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.frequencyLabel {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.frequencyHz {
+  font-size: 13px; font-weight: 700; color: var(--text-value);
+  font-variant-numeric: tabular-nums;
+}
+.ampBlock { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.ampBlockTitle {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+
+/* ── Center column: Oscilloscope + Sample Layers ────────────────────────── */
+.synthCenterCol {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: linear-gradient(170deg, rgba(16,16,22,0.98) 0%, rgba(10,10,14,0.99) 100%);
+}
+.oscilloscopeBlock {
+  flex: 0 0 auto; border-bottom: 2px solid var(--border);
+  display: flex; flex-direction: column;
+}
+.oscilloscopeLabel {
+  padding: 6px 14px; font-size: 10px; font-weight: 900;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border); background: rgba(6,6,10,0.8);
+}
+.oscilloscopeWrap { height: 220px; overflow: hidden; background: #0a0a10; }
+.oscilloscopeCanvas { display: block; width: 100%; height: 100%; }
+
+/* Sample Layers (table layout) */
+.sampleLayersBlock {
+  flex: 1 1 0; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.layersBlockHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 10px; border-bottom: 1px solid var(--border);
+  background: rgba(6,6,10,0.8); flex-shrink: 0;
+}
+.layersBlockTitle {
+  font-size: 10px; font-weight: 900; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--mod-sample);
+}
+.layersBlockRight { display: flex; align-items: center; gap: 8px; }
+.layersTableHead {
+  display: flex; gap: 6px; padding: 4px 10px;
+  align-items: center; border-bottom: 1px solid var(--border);
+  background: rgba(10,10,14,0.9); flex-shrink: 0;
+}
+.layersTableHead .ltCol {
+  font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.layerTableRow {
+  display: flex; gap: 6px; align-items: center;
+  padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  flex-shrink: 0; min-height: 54px;
+}
+.layerTableRow.is-active { border-left: 3px solid var(--mod-sample); background: rgba(39,174,96,0.03); }
+.ltColNum { width: 20px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: center; flex-shrink: 0; }
+.ltColName { width: 90px; flex-shrink: 0; }
+.layerNameInput {
+  width: 100%; height: 28px; border-radius: 5px; padding: 0 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-value); font-size: 10px;
+}
+.ltColLoad { width: 44px; flex-shrink: 0; }
+.layerLoadBtn {
+  width: 100%; height: 26px; border-radius: 5px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-primary); font-size: 9px; font-weight: 700;
+  cursor: pointer; transition: background 120ms;
+}
+.layerLoadBtn:hover { background: var(--bg-hover); border-color: var(--mod-sample); }
+.ltColFile {
+  width: 110px; flex-shrink: 0;
+  font-size: 9px; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ltColOnOff { width: 44px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+.layerOnOffLabel {
+  font-size: 8px; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 3px; cursor: pointer;
+}
+.layerOnOffLabel input[type="radio"] { width: 10px; height: 10px; accent-color: var(--mod-sample); }
+.ltColWave { flex: 1 1 0; min-width: 80px; overflow: hidden; }
+.layerWaveformWrap {
+  border-radius: 4px; overflow: hidden;
+  border: 1px solid var(--border); background: #0e0e12;
+}
+.layerWaveformWrap canvas { width: 100% !important; height: 100% !important; }
+.ltColKnobs { display: flex; gap: 2px; align-items: flex-start; flex-shrink: 0; }
+.ltColVU { width: 26px; flex-shrink: 0; display: flex; justify-content: center; }
+
+/* ── Right column: Focus Window ──────────────────────────────────────────── */
+.synthRightCol {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: linear-gradient(170deg, rgba(18,18,24,0.98) 0%, rgba(12,12,16,0.99) 100%);
+  border-left: 1px solid var(--border);
+}
+.focusWindowLabel {
+  padding: 6px 14px; font-size: 10px; font-weight: 900;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--mod-focus); background: rgba(6,6,10,0.8);
+  border-bottom: 2px solid rgba(232,197,71,0.25);
+}
+.focusGainSection {
+  flex-shrink: 0; padding: 10px 12px;
+  border-top: 2px solid rgba(232,197,71,0.15); background: rgba(6,6,10,0.6);
+}
+.focusGainHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.focusGainHeader span {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-primary);
+}
+.focusGainRow { display: flex; align-items: flex-start; gap: 6px; }
+.focusGainKnobs { display: flex; gap: 4px; flex: 1; }
+.randomizeBtn {
+  height: 30px; padding: 0 14px; border-radius: 6px;
+  background: rgba(232,197,71,0.08); border: 1px solid rgba(232,197,71,0.22);
+  color: var(--mod-focus); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; cursor: pointer; white-space: nowrap;
+  transition: background 120ms, color 120ms; align-self: center;
+}
+.randomizeBtn:hover { background: rgba(232,197,71,0.16); color: #fff; }
+
+/* Preview Filter section */
+.focusPreviewFilter {
+  flex-shrink: 0; padding: 10px 12px;
+  border-top: 2px solid rgba(232,197,71,0.15); background: rgba(6,6,10,0.6);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.previewFilterHeader {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-primary);
+}
+.previewFilterTypes { display: flex; gap: 3px; flex-wrap: wrap; }
+.previewFilterTypes .pFilterBtn { flex: 0 0 auto; min-width: 36px; padding: 0 6px; }
+.filterEnableBtn {
+  height: 28px; padding: 0 16px; border-radius: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; cursor: pointer; align-self: flex-start;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.filterEnableBtn.active {
+  background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.4); color: var(--green);
+}
+.previewFilterKnobs { display: flex; gap: 4px; align-items: flex-start; }
+
+/* ── Header updates ──────────────────────────────────────────────────────── */
+.presetSelectorLabel {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--text-secondary); margin-right: 8px;
+}
+.presetArrowBtn {
+  width: 26px; height: 28px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); font-size: 10px; cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.presetArrowBtn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-panel); }
+.peakLevelLabel {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--text-secondary); white-space: nowrap;
+}
+.brandTitle strong { color: #fff; font-weight: 900; letter-spacing: 0.14em; }

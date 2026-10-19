@@ -1,0 +1,15 @@
+{
+  "name": "kicksynth-pro-ui",
+  "version": "1.0.0",
+  "description": "UI for KickSynth Pro",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^25.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.153.0"
+  }
+}

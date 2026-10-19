@@ -1,0 +1,55 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts and large binaries
+core/build/
+core/build_ws/
+app/build/
+ui/build/
+dist/
+build/
+*.exe
+*.dll
+*.lib
+*.pdb
+*.o
+*.a
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Electron
+electron-builder-effective-config.json
+
+# Temporary files
+*.tmp
+*.log
+.cache/
+
+# OS-specific
+Thumbs.db
+.DS_Store
+
+# Publish safety (added when preparing the public release)
+.env
+.env.*
+!.env.example
+*.bak*
+*.pfx
+*.pem
+*.key
+*.p12
+node_modules/
+target/

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KickSynth Pro</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top, #16213a 0%, #0a0f1e 45%, #070b16 100%);
+      color: #ecf4ff;
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(14, 24, 45, 0.98), rgba(9, 16, 31, 0.98));
+      border: 1px solid rgba(77, 113, 171, 0.25);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 20px;
+    }
+    .title h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 0.16em;
+      font-weight: 900;
+      background: linear-gradient(135deg, #00f2ff, #a371ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      margin-top: 6px;
+      color: #8aa0c6;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .header-actions, .preset-row, .button-row, .footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.9fr);
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+    .panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #76cfff;
+      margin: 0;
+    }
+    .wave-wrap {
+      min-height: 360px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(8, 14, 28, 0.98), rgba(12, 22, 38, 0.98));
+      border: 1px solid rgba(70, 106, 156, 0.25);
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .metric .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #7f92b3;
+      margin-bottom: 8px;
+    }
+    .metric .value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #eff7ff;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .control {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .control label {
+      font-size: 12px;
+      color: #d5e5ff;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .control .readout {
+      font-size: 13px;
+      color: #00f2ff;
+      font-weight: 700;
+      min-width: 64px;
+      text-align: right;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00f2ff;
+    }
+    .preset-row {
+      justify-content: flex-start;
+    }
+    .preset-btn, .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .btn:hover, .preset-btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, #00f2ff, #7b61ff);
+      color: #08111e;
+      box-shadow: 0 10px 24px rgba(0, 242, 255, 0.18);
+    }
+    .btn-secondary, .preset-btn {
+      background: rgba(255,255,255,0.04);
+      color: #e8f1ff;
+      border: 1px solid rgba(113, 141, 186, 0.24);
+    }
+    .preset-btn.active {
+      border-color: #00f2ff;
+      color: #00f2ff;
+      box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.15) inset;
+    }
+    .hint, .status {
+      color: #8ea2c6;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .footer-row {
+      justify-content: space-between;
+      font-size: 12px;
+      color: #8196ba;
+    }
+    .accent {
+      color: #00f2ff;
+      font-weight: 700;
+    }
+    @media (max-width: 980px) {
+      .main { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .controls-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="card header">
+      <div class="title">
+        <h1>KICKSYNTH PRO</h1>
+        <div class="subtitle">Playable Web Audio kick-drum prototype</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="randomBtn">Randomize</button>
+        <button class="btn btn-primary" id="previewBtn">Preview Kick</button>
+        <button class="btn btn-secondary" id="exportBtn">Export WAV</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card panel">
+        <h2 class="section-title">Waveform / Envelope</h2>
+        <div class="wave-wrap">
+          <canvas id="waveCanvas"></canvas>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="label">Attack</div><div class="value" id="metricAttack">6 ms</div></div>
+          <div class="metric"><div class="label">Decay</div><div class="value" id="metricDecay">420 ms</div></div>
+          <div class="metric"><div class="label">Pitch Drop</div><div class="value" id="metricPitch">48 st</div></div>
+          <div class="metric"><div class="label">Punch</div><div class="value" id="metricPunch">62%</div></div>
+          <div class="metric"><div class="label">Drive</div><div class="value" id="metricDrive">28%</div></div>
+        </div>
+        <div class="hint">
+          Proper kick controls are wired to both the visual model and the sound engine: <span class="accent">Attack</span>,
+          <span class="accent">Decay</span>, <span class="accent">Pitch</span>, <span class="accent">Punch</span>, and
+          <span class="accent">Drive</span>.
+        </div>
+      </section>
+
+      <aside class="card panel">
+        <h2 class="section-title">Presets</h2>
+        <div class="preset-row" id="presetRow"></div>
+
+        <h2 class="section-title">Synthesis Controls</h2>
+        <div class="controls-grid" id="controlsGrid"></div>
+
+        <div class="button-row">
+          <button class="btn btn-secondary" id="resetBtn">Reset</button>
+          <button class="btn btn-secondary" id="doubleBtn">Double Hit</button>
+        </div>
+
+        <div class="status" id="statusText">Ready.</div>
+      </aside>
+    </main>
+
+    <footer class="card panel">
+      <div class="footer-row">
+        <span>KickSynth Pro v1.1 • UI prototype</span>
+        <span>Engine: Web Audio API + offline WAV render</span>
+        <span id="presetLabel">Preset: Classic</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const controlsGrid = document.getElementById('controlsGrid');
+    const presetRow = document.getElementById('presetRow');
+    const statusText = document.getElementById('statusText');
+    const presetLabel = document.getElementById('presetLabel');
+
+    const paramDefs = [
+      { key: 'attack', label: 'Attack', min: 0, max: 40, step: 1, unit: 'ms' },
+      { key: 'decay', label: 'Decay', min: 120, max: 1200, step: 5, unit: 'ms' },
+      { key: 'pitch', label: 'Pitch', min: 12, max: 72, step: 1, unit: 'st' },
+      { key: 'punch', label: 'Punch', min: 0, max: 100, step: 1, unit: '%' },
+      { key: 'drive', label: 'Drive', min: 0, max: 100, step: 1, unit: '%' },
+      { key: 'tone', label: 'Tone', min: 30, max: 120, step: 1, unit: 'Hz' },
+      { key: 'click', label: 'Click', min: 0, max: 100, step: 1, unit: '%' },
+      { key: 'body', label: 'Body', min: 0, max: 100, step: 1, unit: '%' },
+    ];
+
+    const presets = {
+      Classic: { attack: 6, decay: 420, pitch: 48, punch: 62, drive: 28, tone: 52, click: 26, body: 78 },
+      Hard:    { attack: 2, decay: 340, pitch: 60, punch: 88, drive: 55, tone: 62, click: 54, body: 82 },
+      Sub:     { attack: 10, decay: 700, pitch: 24, punch: 30, drive: 14, tone: 42, click: 8,  body: 94 },
+      Punchy:  { attack: 4, decay: 430, pitch: 54, punch: 76, drive: 36, tone: 58, click: 38, body: 86 },
+      Click:   { attack: 1, decay: 220, pitch: 66, punch: 92, drive: 42, tone: 70, click: 78, body: 62 },
+    };
+
+    const state = {
+      ...presets.Classic,
+      preset: 'Classic',
+    };
+
+    let audioCtx = null;
+
+    function ensureAudioContext() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) throw new Error('Web Audio API is not supported in this environment.');
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function formatValue(def, value) {
+      if (def.unit === '%') return `${Math.round(value)}%`;
+      if (def.unit === 'ms') return `${Math.round(value)} ms`;
+      if (def.unit === 'st') return `${Math.round(value)} st`;
+      return `${Math.round(value)} ${def.unit}`;
+    }
+
+    function updateMetrics() {
+      document.getElementById('metricAttack').textContent = `${Math.round(state.attack)} ms`;
+      document.getElementById('metricDecay').textContent = `${Math.round(state.decay)} ms`;
+      document.getElementById('metricPitch').textContent = `${Math.round(state.pitch)} st`;
+      document.getElementById('metricPunch').textContent = `${Math.round(state.punch)}%`;
+      document.getElementById('metricDrive').textContent = `${Math.round(state.drive)}%`;
+      presetLabel.textContent = `Preset: ${state.preset}`;
+    }
+
+    function resizeCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      const bounds = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, bounds.width * ratio);
+      canvas.height = Math.max(1, bounds.height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drawWaveform();
+    }
+
+    function synthSampleAtTime(t, sampleRate) {
+      const attackSec = Math.max(0.0005, state.attack / 1000);
+      const decaySec = Math.max(0.06, state.decay / 1000);
+      const totalSec = attackSec + decaySec;
+      const attackEnv = t < attackSec ? t / attackSec : 1;
+      const decayEnv = Math.exp(-(t - attackSec) / Math.max(0.03, decaySec * 0.6));
+      const ampEnv = t < attackSec ? attackEnv : decayEnv;
+      const baseFreq = state.tone;
+      const pitchRatio = Math.pow(2, state.pitch / 12);
+      const freq = baseFreq + (baseFreq * (pitchRatio - 1)) * Math.exp(-t * (18 + state.punch / 8));
+      const phase = 2 * Math.PI * freq * t;
+      const body = Math.sin(phase) * (0.55 + state.body / 220);
+      const punchHarmonic = Math.sin(phase * 2.4) * (state.punch / 180);
+      const noise = ((Math.random() * 2) - 1) * Math.exp(-t * 150) * (state.click / 100) * 0.35;
+      const driveAmount = 1 + state.drive / 14;
+      return Math.tanh((body + punchHarmonic + noise) * driveAmount) * ampEnv * 0.92;
+    }
+
+    function generatePreviewData(length = 1200) {
+      const sampleRate = 44100;
+      const totalDuration = Math.max(0.2, (state.attack + state.decay) / 1000 + 0.18);
+      const data = new Float32Array(length);
+      for (let i = 0; i < length; i++) {
+        const t = (i / (length - 1)) * totalDuration;
+        data[i] = synthSampleAtTime(t, sampleRate);
+      }
+      return data;
+    }
+
+    function drawWaveform() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, 'rgba(0,242,255,0.12)');
+      gradient.addColorStop(1, 'rgba(123,97,255,0.03)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = 'rgba(129, 161, 214, 0.14)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 8; i++) {
+        const y = (height / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 12; i++) {
+        const x = (width / 12) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+
+      const data = generatePreviewData(Math.max(400, Math.floor(width)));
+      const mid = height / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, mid);
+      for (let i = 0; i < data.length; i++) {
+        const x = (i / (data.length - 1)) * width;
+        const y = mid - data[i] * mid * 0.78;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(width, mid);
+      ctx.closePath();
+      const fill = ctx.createLinearGradient(0, 0, 0, height);
+      fill.addColorStop(0, 'rgba(0, 242, 255, 0.28)');
+      fill.addColorStop(1, 'rgba(123, 97, 255, 0.02)');
+      ctx.fillStyle = fill;
+      ctx.fill();
+
+      ctx.shadowColor = '#00f2ff';
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = '#00f2ff';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      for (let i = 0; i < data.length; i++) {
+        const x = (i / (data.length - 1)) * width;
+        const y = mid - data[i] * mid * 0.78;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function buildControls() {
+      controlsGrid.innerHTML = '';
+      for (const def of paramDefs) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'control';
+        wrapper.innerHTML = `
+          <div class="control-header">
+            <label for="${def.key}">${def.label}</label>
+            <div class="readout" id="${def.key}Readout"></div>
+          </div>
+          <input id="${def.key}" type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${state[def.key]}" />
+        `;
+        controlsGrid.appendChild(wrapper);
+        const input = wrapper.querySelector('input');
+        input.addEventListener('input', (event) => {
+          state[def.key] = Number(event.target.value);
+          state.preset = 'Custom';
+          syncUI();
+        });
+      }
+    }
+
+    function buildPresetButtons() {
+      presetRow.innerHTML = '';
+      Object.keys(presets).forEach((name) => {
+        const btn = document.createElement('button');
+        btn.className = `preset-btn${state.preset === name ? ' active' : ''}`;
+        btn.textContent = name;
+        btn.addEventListener('click', () => applyPreset(name));
+        presetRow.appendChild(btn);
+      });
+    }
+
+    function syncUI() {
+      for (const def of paramDefs) {
+        const input = document.getElementById(def.key);
+        const readout = document.getElementById(`${def.key}Readout`);
+        if (input) input.value = state[def.key];
+        if (readout) readout.textContent = formatValue(def, state[def.key]);
+      }
+      updateMetrics();
+      buildPresetButtons();
+      drawWaveform();
+    }
+
+    function applyPreset(name) {
+      Object.assign(state, presets[name], { preset: name });
+      statusText.textContent = `Preset loaded: ${name}`;
+      syncUI();
+    }
+
+    function randomize() {
+      for (const def of paramDefs) {
+        const span = def.max - def.min;
+        state[def.key] = Math.round((def.min + Math.random() * span) / def.step) * def.step;
+      }
+      state.preset = 'Custom';
+      statusText.textContent = 'Randomized kick.';
+      syncUI();
+    }
+
+    function createDistortionCurve(amount = 20) {
+      const n = 2048;
+      const curve = new Float32Array(n);
+      const k = Math.max(1, amount);
+      for (let i = 0; i < n; i++) {
+        const x = (i * 2) / n - 1;
+        curve[i] = ((3 + k) * x * 20 * (Math.PI / 180)) / (Math.PI + k * Math.abs(x));
+      }
+      return curve;
+    }
+
+    function triggerKick(timeOffset = 0) {
+      const ctx = ensureAudioContext();
+      const now = ctx.currentTime + timeOffset;
+      const attackSec = Math.max(0.0005, state.attack / 1000);
+      const decaySec = Math.max(0.08, state.decay / 1000);
+      const stopTime = now + attackSec + decaySec + 0.12;
+      const baseFreq = state.tone;
+      const startFreq = baseFreq * Math.pow(2, state.pitch / 12);
+
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq, now + Math.max(0.02, decaySec * 0.55));
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(1, now + attackSec);
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+
+      const shaper = ctx.createWaveShaper();
+      shaper.curve = createDistortionCurve(10 + state.drive * 0.9);
+      shaper.oversample = '4x';
+
+      const bodyGain = ctx.createGain();
+      bodyGain.gain.value = 0.7 + state.body / 170;
+
+      osc.connect(shaper);
+      shaper.connect(bodyGain);
+      bodyGain.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(stopTime);
+
+      const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+      const noise = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noise.length; i++) noise[i] = (Math.random() * 2 - 1);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.value = 1000 + state.click * 25;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime((state.click / 100) * 0.45, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noiseSource.start(now);
+      noiseSource.stop(now + 0.05);
+    }
+
+    async function renderKickToWav() {
+      const sampleRate = 44100;
+      const duration = Math.max(0.35, (state.attack + state.decay) / 1000 + 0.2);
+      const frameCount = Math.floor(sampleRate * duration);
+      const samples = new Float32Array(frameCount);
+      for (let i = 0; i < frameCount; i++) {
+        samples[i] = synthSampleAtTime(i / sampleRate, sampleRate);
+      }
+
+      const wav = encodeWav(samples, sampleRate);
+      const blob = new Blob([wav], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+      return { blob, url };
+    }
+
+    function encodeWav(samples, sampleRate) {
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+      const writeString = (offset, string) => {
+        for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+      };
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + samples.length * 2, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(36, 'data');
+      view.setUint32(40, samples.length * 2, true);
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++, offset += 2) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      }
+      return buffer;
+    }
+
+    document.getElementById('previewBtn').addEventListener('click', async () => {
+      try {
+        triggerKick();
+        statusText.textContent = 'Playing kick preview…';
+        setTimeout(() => { statusText.textContent = 'Ready.'; }, Math.max(600, state.decay + 220));
+      } catch (error) {
+        statusText.textContent = `Audio error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('doubleBtn').addEventListener('click', async () => {
+      try {
+        triggerKick(0);
+        triggerKick(0.18);
+        statusText.textContent = 'Double-hit preview.';
+        setTimeout(() => { statusText.textContent = 'Ready.'; }, 900);
+      } catch (error) {
+        statusText.textContent = `Audio error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('randomBtn').addEventListener('click', randomize);
+    document.getElementById('resetBtn').addEventListener('click', () => applyPreset('Classic'));
+
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+      const { url } = await renderKickToWav();
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `kicksynth-${state.preset.toLowerCase()}.wav`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      statusText.textContent = 'WAV exported.';
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    buildControls();
+    syncUI();
+    resizeCanvas();
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+You are a senior desktop UI/layout engineer working inside the KickSynth Pro Electron/React app.
+
+Project: C:\Users\דוד\Desktop\MusicAgency_Workspace\KickSynth_Pro\app
+
+Mission: Fix the current broken production layout structurally, not cosmetically. Read the relevant files fully before editing.
+
+Relevant files to inspect fully before editing:
+- src/renderer/src/App.tsx
+- src/renderer/src/index.css
+- src/main/index.ts
+- src/preload/index.ts
+- src/renderer/src/components/WaveformDisplay.tsx
+- src/renderer/src/components/EQCurve.tsx
+- src/renderer/src/components/Knob.tsx
+- src/renderer/src/components/Toggle.tsx
+
+Current issues from the last screenshot / review:
+- center column overcrowded
+- EQ area clipped / too short
+- volume slider area visually broken and awkwardly jammed into Character
+- right sample column too dominant
+- resize/maximize behavior not robust
+- spacing is compressed and inconsistent
+
+Hard requirements:
+1. Preserve product direction:
+   - Electron/React primary UI
+   - dark premium plugin look
+   - SYNTH remains the main tab
+2. Fix resize/maximize/minimize behavior so it works properly.
+3. Layout must look correct at 1200x720, maximized, and slightly larger than default.
+4. Avoid blank areas, clipping, overflow, crushed controls, and brittle calc chains.
+5. Do NOT remove features just to make layout easier.
+
+Specific goals:
+A. Rebalance 3-column SYNTH layout.
+- Left column should fit oscillator / amp / filter / mod cleanly.
+- Center column should fit character + dedicated volume treatment + EQ without clipping.
+- Right column should fit sample layers clearly without dominating the composition.
+- Prefer stable CSS grid/flex with minmax and intrinsic sizing over hard-coded calc-based heights.
+
+B. Vertical budgeting.
+- Every major section needs enough vertical space.
+- EQ must be fully visible and useful.
+- Character and volume must align cleanly.
+- If needed, rebalance heights among major sections.
+
+C. Volume area.
+- Make it intentional and usable.
+- It must not feel jammed into Character.
+- Dedicated mini-panel/row is acceptable.
+
+D. Resize behavior.
+- BrowserWindow config should maximize correctly and respect taskbar/work area.
+- Renderer should scale cleanly with viewport sizing and sane min sizes.
+- If needed, use desktop breakpoints for tighter sizes.
+
+E. Tab row + display row.
+- Tab bar, waveform, and spectrum should remain visually stable during resize.
+- No squashed header/toolbar behavior.
+
+F. Samples column.
+- Keep sample slots clear/readable.
+- Reduce wasted space and improve spacing.
+- Right column must not dominate.
+
+Think like a premium VST/plugin UI: hierarchy, even spacing, alignment, negative space, and resize-safe desktop behavior.
+
+Please:
+1. Make the necessary code changes.
+2. Run this exact build command and ensure it passes:
+   Set-Location 'C:\Users\דוד\Desktop\MusicAgency_Workspace\KickSynth_Pro\app'
+   npm run build 2>&1 | Select-Object -Last 12
+3. If build passes, relaunch the dev app in a background process.
+4. At the end, print a short report with:
+   - what was structurally changed
+   - final column proportions / layout strategy
+   - what was fixed in resize behavior
+   - build result
+
+Prefer a clean structural fix over band-aids.
